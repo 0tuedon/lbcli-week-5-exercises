@@ -1,2 +1,15 @@
-# Create a CLTV script with a timestamp of 1495584032 and public key below:
 # publicKey=02e3af28965693b9ce1228f9d468149b831d6a0540b25e8a9900f71372c11fb277
+
+TIMESTAMP=1495584032
+TIMESTAMP_HEX=$(printf '%08x\n' $TIMESTAMP | sed 's/^\(00\)*//' )
+
+LITTLE_ENDIAN_TIMESTAMP=$(echo $TIMESTAMP_HEX | tac -rs .. | echo "$(tr -d '\n')")
+LENGTH_TIMESTAMP=$(echo -n $LITTLE_ENDIAN_TIMESTAMP | wc -c | awk '{print $1/2}')
+
+CLTV_SCRIPT="04"$LITTLE_ENDIAN_TIMESTAMP"b17576"
+PUBKEY="02e3af28965693b9ce1228f9d468149b831d6a0540b25e8a9900f71372c11fb277"
+
+HASHED_SCRIPT=$(echo -n $PUBKEY | xxd -r -p  | openssl dgst -sha256 -binary | openssl dgst -rmd160 | awk '{print $2}')
+
+FULL_SCRIPT=""$CLTV_SCRIPT"a914"$HASHED_SCRIPT"88ac"
+echo $FULL_SCRIPT
